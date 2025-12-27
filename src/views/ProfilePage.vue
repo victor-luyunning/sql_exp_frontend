@@ -79,7 +79,7 @@
                     编辑资料
                   </button>
                   <button 
-                    @click="showSettings = true"
+                    @click="showAccountSettings = true"
                     class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-[#2c3b49] border border-[#d1d5db] dark:border-[#4b5563] text-[#111418] dark:text-white rounded-lg text-sm font-medium hover:bg-gray-50 dark:hover:bg-[#37495b] transition-colors"
                   >
                     <span class="material-symbols-outlined text-[18px]">settings</span>
@@ -250,14 +250,52 @@
       </div>
     </div>
   </div>
+
+  <!-- Account Settings Modal -->
+  <div v-if="showAccountSettings" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" @click.self="showAccountSettings = false">
+    <div class="bg-white dark:bg-[#1a2632] rounded-xl shadow-2xl w-full max-w-md">
+      <!-- Modal Header -->
+      <div class="sticky top-0 bg-white dark:bg-[#1a2632] border-b border-[#e5e7eb] dark:border-[#22303e] px-6 py-4 flex items-center justify-between">
+        <h3 class="text-xl font-bold text-[#111418] dark:text-white">账号设置</h3>
+        <button @click="showAccountSettings = false" class="text-[#617589] hover:text-[#111418] dark:hover:text-white transition-colors">
+          <span class="material-symbols-outlined text-[24px]">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-5">
+        <div class="space-y-4">
+          <button 
+            @click="handleRecharge"
+            class="w-full flex items-center justify-center gap-3 px-4 py-3 bg-green-600 text-white rounded-lg text-base font-medium hover:bg-green-700 transition-colors"
+          >
+            <span class="material-symbols-outlined">payments</span>
+            充值
+          </button>
+          
+          <button 
+            @click="handleLogout"
+            class="w-full flex items-center justify-center gap-3 px-4 py-3 bg-red-600 text-white rounded-lg text-base font-medium hover:bg-red-700 transition-colors"
+          >
+            <span class="material-symbols-outlined">logout</span>
+            注销
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { getUserInfo } from '@/api/users'
+import { getMyOrders, cancelOrder } from '@/api/orders'
 import AppHeader from '../components/AppHeader.vue'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 // Search
 const searchQuery = ref('')
@@ -268,74 +306,161 @@ const handleSearch = () => {
   }
 }
 
-// User Info (模拟数据,实际应从API获取)
+// User Info - 从 API 获取
 const userInfo = ref({
-  username: '李明',
-  avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCViKVOfHqt2-9UnYUpEzs287y79wFyt5RgXZoljAsZiXY1Yv6Ek-JedzvHPJdmnvPaDQe6xgkvDKfWJHAcfPSGQrRelaSox-PHSs0Nw6IHc50RANilEH_OBiupphEPR5sK43w8MznzWnnkXMRoOg77t61Aw0TR_VfYZgRPlsim9N9UWKAW1KgC9Bdq644UXAxAEUgFcFrPmz35qhR5jbyKyb11O8RrueWZmCT7fpDh2HLrhusLNEZrm4hrS8jwyQEb7bIRcBNaenJw',
-  bio: 'Always be coding.',
-  studentId: '2021008542',
-  department: '计算机科学与技术学院',
-  major: '软件工程',
-  enrollmentDate: '2021年9月'
+  username: '',
+  avatar: '',
+  bio: '',
+  studentId: '',
+  student_id: '',
+  department: '',
+  major: '',
+  grade: '',
+  email: '',
+  phone: '',
+  balance: 0
 })
 
 const userStats = ref({
   creditScore: 98,
-  purchasedBooks: 12,
-  soldBooks: 5
+  purchasedBooks: 0,
+  soldBooks: 0
 })
+
+// 加载用户信息
+const loadUserInfo = async () => {
+  try {
+    const res = await getUserInfo()
+    userInfo.value = {
+      ...res.data,
+      studentId: res.data.student_id || res.data.studentId,
+      bio: res.data.bio || '这个人很懒，还没有留下什么~'
+    }
+  } catch (error) {
+    console.error('获取用户信息失败:', error)
+  }
+}
 
 // Modals
 const showEditProfile = ref(false)
 const showSettings = ref(false)
 
-// Order Tabs
-const orderTabs = [
-  { label: '全部', value: 'all' },
-  { label: '待付款', value: 'PENDING_PAYMENT' },
-  { label: '待发货', value: 'PAID' },
-  { label: '待收货', value: 'SHIPPED' },
-  { label: '已完成', value: 'COMPLETED' }
-]
+// Settings Modal
+const showAccountSettings = ref(false)
+
+// Edit Profile Form
+const editForm = ref({
+  studentId: '',
+  email: '',
+  phone: '',
+  department: '',
+  grade: '',
+  avatar: ''
+})
+
+const isUpdating = ref(false)
+
+// Handle Update Profile
+const handleUpdateProfile = async () => {
+  isUpdating.value = true
+  try {
+    const updateData = {}
+    // Only include fields that have values (not empty strings)
+    if (editForm.value.studentId.trim()) updateData.student_id = editForm.value.studentId.trim()
+    if (editForm.value.email.trim()) updateData.email = editForm.value.email.trim()
+    if (editForm.value.phone.trim()) updateData.phone = editForm.value.phone.trim()
+    if (editForm.value.department.trim()) updateData.department = editForm.value.department.trim()
+    if (editForm.value.grade.trim()) updateData.grade = editForm.value.grade.trim()
+    if (editForm.value.avatar.trim()) updateData.avatar = editForm.value.avatar.trim()
+    
+    const { updateUserInfo } = await import('@/api/users')
+    await updateUserInfo(updateData)
+    
+    alert('个人资料更新成功！')
+    showEditProfile.value = false
+    
+    // 重新加载用户信息
+    await loadUserInfo()
+  } catch (error) {
+    console.error('更新用户信息失败:', error)
+    alert('更新失败：' + (error.message || '请稍后再试'))
+  } finally {
+    isUpdating.value = false
+  }
+}
+
+// Open Edit Profile Modal
+const openEditProfile = () => {
+  // 将当前用户信息复制到编辑表单
+  editForm.value = {
+    studentId: userInfo.value.studentId || userInfo.value.student_id || '',
+    email: userInfo.value.email || '',
+    phone: userInfo.value.phone || '',
+    department: userInfo.value.department || '',
+    grade: userInfo.value.grade || '',
+    avatar: userInfo.value.avatar || ''
+  }
+  showEditProfile.value = true
+}
+
+// Account Settings Actions
+const handleRecharge = () => {
+  alert('充值功能暂未实现')
+  // 这里可以实现充值逻辑，例如跳转到充值页面
+}
+
+const handleLogout = async () => {
+  if (confirm('确定要注销登录吗？')) {
+    try {
+      const { logout } = await import('@/api/auth')
+      await logout()
+      authStore.logout()
+      router.push('/login')
+      alert('已成功注销登录')
+    } catch (error) {
+      console.error('注销失败:', error)
+      alert('注销失败：' + (error.message || '请稍后再试'))
+    }
+  }
+}
 
 const currentTab = ref('all')
 
-// Orders (模拟数据)
-const orders = ref([
-  {
-    id: 1,
-    orderNo: '8493020123',
-    createTime: '2023-10-24 14:30:21',
-    status: 'COMPLETED',
-    bookTitle: '《Java编程思想 (第4版)》',
-    bookDesc: '作者: Bruce Eckel | 机械工业出版社',
-    bookCover: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAMPrWx83bCd51fapwX1QWQlfRx3oI7_uhLJGyTMLBfbzdF3PRQVGziuJXDihHKlll4k2mKtBr-tym3E47fZL-u12jhxtlZYv7qM7PqnEiVCVvSQbyo88bVTNo1ywci3wuBE1WH2YK8PhXHBObLVnUmxqmycla4oNi7c900hmD2C29UY8dnA7RHfpHjsiezagLT42v7qR_Uq0wUr2qWzz1hatrCMLpbrTJKR0ZPWVgRgbGa6oY4wrBwV3C6YQ5vPr6K7qc2Ou7dNSvb',
-    quantity: 1,
-    totalAmount: 45.00
-  },
-  {
-    id: 2,
-    orderNo: '8493020567',
-    createTime: '2023-11-02 09:15:00',
-    status: 'PENDING_PAYMENT',
-    bookTitle: '《高等数学 (上册)》 第七版',
-    bookDesc: '作者: 同济大学数学系 | 高等教育出版社',
-    bookCover: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDqYIN9mB78IOoDpeTp97a6Z5dcf_RYn_K9bZ4vISpsKt4N7LM6fpJKLphMMFT8QG84Hoye3GBvMHM9O0Ty4oozhwxwNEHpvP_6KBhB8-S5nzL9-S-UhBMfMASahv7A3_230WzdIBpRpeGHfRXVAKZLmKeA1pWECNhJA_hGXVZNAcDAuuTu-T9oCbUsbuSBx_YTOkke5wpTnJfqVADWcAlHl56KqUZwkAFdFEhsFDWu0gwy7MpBnB0WaKdp5DDzzuhlFXGLJAVBZ6S7',
-    quantity: 1,
-    totalAmount: 15.00
-  },
-  {
-    id: 3,
-    orderNo: '8493020889',
-    createTime: '2023-11-01 18:20:45',
-    status: 'SHIPPED',
-    bookTitle: '《英美文学选读》',
-    bookDesc: '笔记清晰 | 9成新',
-    bookCover: 'https://lh3.googleusercontent.com/aida-public/AB6AXuB8Rl8Qehy51kBTh4j7REa0lSKlCBM6GaWCvec1x5ykga4BDchA0EC5ssp6fdjwtfHU0vX002dU-aYXeTzFPmVA5afMjIHyMpVvXDjiyqF5XjcFhyhkHoWZvI_nsk_dcvuBqbB5buiGd07yxVxMmGSYMVCSgcj96PrbACSa93lTZw1Tpc9O-ZnCXpZ2daZWbXezfMs-mPT6xZanrtejA7hSiAZoyT5fKajNzpVn9p9KkOmkDqXeaPqYmqH_cWQsLEqzjQTGUqiA30Tq',
-    quantity: 1,
-    totalAmount: 28.00
+// Orders - 从 API 获取
+const orders = ref([])
+const isLoadingOrders = ref(false)
+
+// 加载订单列表
+const loadOrders = async () => {
+  isLoadingOrders.value = true
+  try {
+    const res = await getMyOrders({
+      pageNum: currentPage.value,
+      pageSize: pageSize.value,
+      status: currentTab.value === 'all' ? undefined : currentTab.value
+    })
+    
+    // 转换后端数据格式为前端需要的格式
+    orders.value = res.data.records.map(order => ({
+      id: order.id,
+      orderNo: order.orderNo,
+      createTime: order.createTime,
+      status: order.status,
+      bookTitle: order.items?.[0]?.bookTitle || '未知书籍',
+      bookDesc: order.items?.[0]?.bookAuthor ? `作者: ${order.items[0].bookAuthor}` : '',
+      bookCover: order.items?.[0]?.bookCover || '',
+      quantity: order.items?.[0]?.quantity || 1,
+      totalAmount: order.totalAmount
+    }))
+    
+    // 统计订单数量
+    userStats.value.purchasedBooks = res.data.total || orders.value.length
+  } catch (error) {
+    console.error('获取订单列表失败:', error)
+  } finally {
+    isLoadingOrders.value = false
   }
-])
+}
 
 // Filtered Orders
 const filteredOrders = computed(() => {
@@ -432,12 +557,17 @@ const getOrderActions = (status) => {
   return actions[status] || []
 }
 
-const handleOrderAction = (type, order) => {
+const handleOrderAction = async (type, order) => {
   const actions = {
-    cancel: () => {
+    cancel: async () => {
       if (confirm('确定要取消订单吗?')) {
-        alert(`订单 ${order.orderNo} 已取消`)
-        // 实际应调用API取消订单
+        try {
+          await cancelOrder(order.id)
+          alert(`订单 ${order.orderNo} 已取消`)
+          loadOrders() // 重新加载订单列表
+        } catch (error) {
+          alert('取消订单失败：' + (error.message || '请稍后再试'))
+        }
       }
     },
     pay: () => {
@@ -471,9 +601,10 @@ const handleViewAllOrders = () => {
 }
 
 // Lifecycle
-onMounted(() => {
-  // 实际应在这里调用API获取用户信息和订单数据
-  console.log('个人中心页面已加载')
+onMounted(async () => {
+  // 加载用户信息和订单数据
+  await loadUserInfo()
+  await loadOrders()
 })
 </script>
 
