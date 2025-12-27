@@ -45,9 +45,9 @@
         <!-- Mobile Logo -->
         <div class="lg:hidden absolute top-8 left-8 flex items-center gap-2 mb-8">
           <div class="w-8 h-8 rounded bg-primary flex items-center justify-center">
-            <span class="material-icons text-white text-lg">menu_book</span>
+            <span class="material-symbols-outlined text-[24px]">menu_book</span>
+            <span class="text-xl font-bold text-gray-900 dark:text-white">CampusBooks</span>
           </div>
-          <span class="text-xl font-bold text-gray-900 dark:text-white">CampusBooks</span>
         </div>
 
         <div class="max-w-md w-full mx-auto">
@@ -189,8 +189,10 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 const formData = ref({
   username: '',
@@ -205,18 +207,25 @@ const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value
 }
 
-const handleLogin = () => {
-  // TODO: 实现登录逻辑
-  console.log('登录信息:', formData.value)
-  
-  // 模拟登录成功
-  if (formData.value.username && formData.value.password) {
-    // 保存模拟token
-    localStorage.setItem('token', 'mock_token_' + Date.now())
-    // 跳转到首页
+const handleLogin = async () => {
+  try {
+    // 调用真实登录API
+    await authStore.login({
+      username: formData.value.username,
+      password: formData.value.password
+    })
+    
+    // 登录成功，跳转到首页
     router.push('/')
-  } else {
+    
+    // 重置错误状态
+    showError.value = false
+  } catch (error) {
+    console.error('登录失败:', error)
+    
+    // 显示错误信息
     showError.value = true
+    errorMessage.value = error.message || '登录失败，请重试'
   }
 }
 

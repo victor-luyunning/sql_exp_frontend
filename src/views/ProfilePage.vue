@@ -64,15 +64,15 @@
                   </div>
                   <div class="flex items-center gap-2">
                     <span class="material-symbols-outlined text-[#9aaebf] text-[18px]">calendar_month</span>
-                    <span class="text-[#617589] dark:text-[#9aaebf]">入学时间:</span>
-                    <span class="font-medium text-[#111418] dark:text-white">{{ userInfo.enrollmentDate || '2021年9月' }}</span>
+                    <span class="text-[#617589] dark:text-[#9aaebf]">年级:</span>
+                    <span class="font-medium text-[#111418] dark:text-white">{{ userInfo.grade || '2021级' }}</span>
                   </div>
                 </div>
 
                 <!-- Action Buttons -->
                 <div class="flex gap-3 mt-2 justify-center md:justify-start">
                   <button 
-                    @click="showEditProfile = true"
+                    @click="openEditProfile"
                     class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors shadow-sm"
                   >
                     <span class="material-symbols-outlined text-[18px]">edit_square</span>
@@ -251,6 +251,102 @@
     </div>
   </div>
 
+    <!-- Edit Profile Modal -->
+  <div v-if="showEditProfile" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" @click.self="showEditProfile = false">
+    <div class="bg-white dark:bg-[#1a2632] rounded-xl shadow-2xl w-full max-w-md">
+      <!-- Modal Header -->
+      <div class="sticky top-0 bg-white dark:bg-[#1a2632] border-b border-[#e5e7eb] dark:border-[#22303e] px-6 py-4 flex items-center justify-between">
+        <h3 class="text-xl font-bold text-[#111418] dark:text-white">编辑资料</h3>
+        <button @click="showEditProfile = false" class="text-[#617589] hover:text-[#111418] dark:hover:text-white transition-colors">
+          <span class="material-symbols-outlined text-[24px]">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-4">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-[#111418] dark:text-white mb-1">学号</label>
+            <input 
+              v-model="editForm.studentId" 
+              type="text" 
+              class="w-full px-3 py-2 border border-[#d1d5db] dark:border-[#4b5563] rounded-lg bg-white dark:bg-[#2c3b49] text-[#111418] dark:text-white"
+              placeholder="请输入学号"
+            >
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-[#111418] dark:text-white mb-1">邮箱</label>
+            <input 
+              v-model="editForm.email" 
+              type="email" 
+              class="w-full px-3 py-2 border border-[#d1d5db] dark:border-[#4b5563] rounded-lg bg-white dark:bg-[#2c3b49] text-[#111418] dark:text-white"
+              placeholder="请输入邮箱"
+            >
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-[#111418] dark:text-white mb-1">手机号</label>
+            <input 
+              v-model="editForm.phone" 
+              type="text" 
+              class="w-full px-3 py-2 border border-[#d1d5db] dark:border-[#4b5563] rounded-lg bg-white dark:bg-[#2c3b49] text-[#111418] dark:text-white"
+              placeholder="请输入手机号"
+            >
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-[#111418] dark:text-white mb-1">学院</label>
+            <input 
+              v-model="editForm.department" 
+              type="text" 
+              class="w-full px-3 py-2 border border-[#d1d5db] dark:border-[#4b5563] rounded-lg bg-white dark:bg-[#2c3b49] text-[#111418] dark:text-white"
+              placeholder="请输入学院"
+            >
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-[#111418] dark:text-white mb-1">年级</label>
+            <input 
+              v-model="editForm.grade" 
+              type="text" 
+              class="w-full px-3 py-2 border border-[#d1d5db] dark:border-[#4b5563] rounded-lg bg-white dark:bg-[#2c3b49] text-[#111418] dark:text-white"
+              placeholder="请输入年级"
+            >
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-[#111418] dark:text-white mb-1">头像链接</label>
+            <input 
+              v-model="editForm.avatar" 
+              type="text" 
+              class="w-full px-3 py-2 border border-[#d1d5db] dark:border-[#4b5563] rounded-lg bg-white dark:bg-[#2c3b49] text-[#111418] dark:text-white"
+              placeholder="请输入头像链接"
+            >
+          </div>
+        </div>
+        
+        <div class="flex gap-3 pt-4">
+          <button 
+            @click="handleUpdateProfile" 
+            :disabled="isUpdating"
+            class="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-base font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+          >
+            <span v-if="isUpdating" class="animate-spin">spinner</span>
+            <span v-else class="material-symbols-outlined text-[18px]">save</span>
+            <span>{{ isUpdating ? '保存中...' : '保存' }}</span>
+          </button>
+          <button 
+            @click="showEditProfile = false" 
+            class="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-[#2c3b49] border border-[#d1d5db] dark:border-[#4b5563] text-[#111418] dark:text-white rounded-lg text-base font-medium hover:bg-gray-50 dark:hover:bg-[#37495b] transition-colors"
+          >
+            取消
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Account Settings Modal -->
   <div v-if="showAccountSettings" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" @click.self="showAccountSettings = false">
     <div class="bg-white dark:bg-[#1a2632] rounded-xl shadow-2xl w-full max-w-md">
@@ -297,6 +393,7 @@ import AppHeader from '../components/AppHeader.vue'
 const router = useRouter()
 const authStore = useAuthStore()
 
+
 // Search
 const searchQuery = ref('')
 
@@ -338,6 +435,12 @@ const loadUserInfo = async () => {
     }
   } catch (error) {
     console.error('获取用户信息失败:', error)
+    // 只有在确认没有token时才跳转登录，如果有token但验证失败，保留页面让用户重试
+    if (!authStore.token || error.message.includes('登录已过期')) {
+      authStore.logout()
+      router.push('/login')
+    }
+    // 否则保持当前页面，让用户可以看到部分信息
   }
 }
 
@@ -426,6 +529,16 @@ const handleLogout = async () => {
 
 const currentTab = ref('all')
 
+// 订单标签页
+const orderTabs = ref([
+  { label: '全部订单', value: 'all' },
+  { label: '待付款', value: 'PENDING_PAYMENT' },
+  { label: '已付款', value: 'PAID' },
+  { label: '已发货', value: 'SHIPPED' },
+  { label: '已完成', value: 'COMPLETED' },
+  { label: '已取消', value: 'CANCELLED' }
+])
+
 // Orders - 从 API 获取
 const orders = ref([])
 const isLoadingOrders = ref(false)
@@ -457,6 +570,13 @@ const loadOrders = async () => {
     userStats.value.purchasedBooks = res.data.total || orders.value.length
   } catch (error) {
     console.error('获取订单列表失败:', error)
+    // 订单加载失败不登出用户，因为可能只是没有订单或网络问题
+    // 检查是否是认证问题且没有token
+    if ((!authStore.token || error.message.includes('登录已过期')) && error.response?.status === 401) {
+      authStore.logout()
+      router.push('/login')
+    }
+    // 否则保持当前页面
   } finally {
     isLoadingOrders.value = false
   }
@@ -602,6 +722,11 @@ const handleViewAllOrders = () => {
 
 // Lifecycle
 onMounted(async () => {
+  // 如果没有token，直接跳转到登录
+  if (!authStore.token) {
+    router.push('/login')
+    return
+  }
   // 加载用户信息和订单数据
   await loadUserInfo()
   await loadOrders()

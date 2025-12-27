@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { useRouter } from 'vue-router'
 
 // 创建 axios 实例
 const request = axios.create({
@@ -47,10 +46,10 @@ request.interceptors.response.use(
       const status = error.response.status
       
       if (status === 401) {
-        // token 过期或无效，清除并跳转登录
+        // token 过期或无效，清除本地存储
         localStorage.removeItem('token')
         localStorage.removeItem('userInfo')
-        window.location.href = '/login'
+        // 不在这里跳转，而是让组件处理
         return Promise.reject(new Error('登录已过期，请重新登录'))
       } else if (status === 403) {
         return Promise.reject(new Error('没有权限访问'))

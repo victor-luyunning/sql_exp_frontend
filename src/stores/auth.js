@@ -56,8 +56,10 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem('userInfo', JSON.stringify(res.data))
     } catch (error) {
       console.error('获取用户信息失败:', error)
-      // token 无效，清除登录状态
-      logout()
+      // 只有在确定是认证错误时才登出
+      if (error.response?.status === 401 || error.message?.includes('登录已过期')) {
+        logout()
+      }
     }
   }
 

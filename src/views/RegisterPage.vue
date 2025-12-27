@@ -175,8 +175,11 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { register as registerApi } from '@/api/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 const formData = ref({
   studentId: '',
@@ -220,10 +223,7 @@ const checkPasswordStrength = () => {
   passwordStrength.value = Math.min(strength, 4)
 }
 
-const handleRegister = () => {
-  // TODO: 实现注册逻辑
-  console.log('注册信息:', formData.value)
-  
+const handleRegister = async () => {
   // 验证表单
   if (!formData.value.username) {
     alert('请输入用户名')
@@ -245,12 +245,30 @@ const handleRegister = () => {
     return
   }
   
-  // 模拟注册成功
-  alert('注册成功！即将跳转到首页')
-  // 保存模拟token
-  localStorage.setItem('token', 'mock_token_' + Date.now())
-  // 跳转到首页
-  router.push('/')
+  try {
+    // 调用真实注册API
+    const registerData = {
+      studentId: formData.value.studentId,
+      username: formData.value.username,
+      password: formData.value.password,
+      email: formData.value.email
+    }
+    
+    const response = await registerApi(registerData)
+    
+    // 注册成功后自动登录
+    await authStore.login({
+      username: formData.value.username,
+      password: formData.value.password
+    })
+    
+    alert('注册成功！')
+    // 跳转到首页
+    router.push('/')
+  } catch (error) {
+    console.error('注册失败:', error)
+    alert(error.message || '注册失败，请重试')
+  }
 }
 </script>
 
