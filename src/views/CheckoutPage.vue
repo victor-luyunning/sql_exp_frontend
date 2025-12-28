@@ -2,21 +2,7 @@
   <div class="bg-background-light dark:bg-background-dark text-[#111418] dark:text-white font-display overflow-x-hidden antialiased">
     <div class="relative flex h-auto min-h-screen w-full flex-col">
       <!-- Header -->
-      <header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f0f2f4] dark:border-gray-800 bg-white dark:bg-[#111418] px-10 py-3">
-        <div class="flex items-center gap-4 text-[#111418] dark:text-white cursor-pointer" @click="router.push('/')">
-          <div class="size-8 flex items-center justify-center text-primary">
-            <span class="material-icons text-3xl">local_library</span>
-          </div>
-          <h2 class="text-[#111418] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">CampusTrade</h2>
-        </div>
-        <div class="flex flex-1 justify-end gap-6 items-center">
-          <button @click="router.push('/cart')" class="relative text-[#111418] dark:text-white hover:text-primary transition-colors">
-            <span class="material-icons">shopping_cart</span>
-            <span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">{{ cartItemCount }}</span>
-          </button>
-          <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-[#f0f2f4] dark:border-gray-700" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA9WPhtK5R7LMdjltEZNxZF_WbhPdWrRXvYfae1ZGqB6M8c6rAwOhc-1b5m_Z59felH8C5GdX2ApbPRStF1xbaV8WF9xUcBvC9BydaJ6MyXxX7cu-Jt-SJSlPD1BeIlAw1-lk8azt-N-VOBkZQrDoRtq7IqPOCEDIOyI_1HLHpXUnwp5JLibIbXbqxeb3yRBlOUgEG_g57Wa9YLtoF7pmvT1wGiOvqK28vCaAkqjE2w9tQgGqO329q9HBpwfMoC6zWz-kA9an71WWi_");'></div>
-        </div>
-      </header>
+      <AppHeader />
 
       <!-- Main Content -->
       <div class="layout-container flex h-full grow flex-col px-4 md:px-10 lg:px-20 xl:px-40 py-8">
@@ -48,10 +34,14 @@
                   <div class="relative">
                     <select v-model="formData.dormitory" class="w-full h-14 rounded-lg border border-[#dbe0e6] dark:border-gray-600 bg-white dark:bg-gray-800 text-[#111418] dark:text-white px-4 py-3 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
                       <option disabled value="">请选择宿舍楼</option>
-                      <option value="north">北区宿舍楼 (North Hall)</option>
-                      <option value="south">南区宿舍楼 (South Hall)</option>
-                      <option value="west">西区宿舍楼 (West Commons)</option>
-                      <option value="east">东区宿舍楼 (East Tower)</option>
+                      <option value="mei14">梅一四围合</option>
+                      <option value="mei58">梅五八围合</option>
+                      <option value="mei9">梅九围合</option>
+                      <option value="tao12">桃一二围合</option>
+                      <option value="tao34">桃三四围合</option>
+                      <option value="tao56">桃五六围合</option>
+                      <option value="tao78">桃七八围合</option>
+                      <option value="tao910">桃九十围合</option>
                     </select>
                     <span class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#617589]">
                       <span class="material-icons">expand_more</span>
@@ -126,15 +116,15 @@
             <div class="bg-white dark:bg-[#1a2632] rounded-xl border border-[#e5e7eb] dark:border-gray-700 shadow-sm flex flex-col overflow-hidden">
               <div class="p-6 border-b border-[#f0f2f4] dark:border-gray-700">
                 <h2 class="text-xl font-bold text-[#111418] dark:text-white">订单摘要</h2>
-                <p class="text-sm text-[#617589] mt-1">共 {{ orderItems.length }} 件商品</p>
+                <p class="text-sm text-[#617589] mt-1">共 {{ cartStore.itemsWithDetails?.length || 0 }} 件商品</p>
               </div>
               <div class="flex flex-col max-h-[400px] overflow-y-auto px-6 py-2">
-                <div v-for="item in orderItems" :key="item.id" class="flex gap-4 py-4 border-b border-[#f0f2f4] dark:border-gray-700 last:border-0">
-                  <div class="size-16 rounded-lg bg-gray-100 dark:bg-gray-700 flex-shrink-0 bg-cover bg-center" :style="`background-image: url('${item.image}');`"></div>
+                <div v-for="item in cartStore.itemsWithDetails" :key="item.bookId" class="flex gap-4 py-4 border-b border-[#f0f2f4] dark:border-gray-700 last:border-0">
+                  <div class="size-16 rounded-lg bg-gray-100 dark:bg-gray-700 flex-shrink-0 bg-cover bg-center" :style="`background-image: url('${item.cover_image || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(item.title?.substring(0, 2) || 'Book') + '&size=200&background=f0f2f4&color=617589'}');`"></div>
                   <div class="flex flex-col flex-1 min-w-0 justify-center">
                     <h3 class="text-sm font-bold text-[#111418] dark:text-white truncate">{{ item.title }}</h3>
-                    <p class="text-xs text-[#617589] truncate">{{ item.author }} • 第 {{ item.edition }} 版</p>
-                    <p class="text-xs font-medium mt-1" :class="item.conditionColor">品相：{{ item.condition }}</p>
+                    <p class="text-xs text-[#617589] truncate">{{ item.author }} • {{ item.edition }}</p>
+                    <p class="text-xs font-medium mt-1" :class="conditionColorMap[item.condition]">品相：{{ conditionMap[item.condition] || item.condition }}</p>
                   </div>
                   <div class="flex flex-col items-end justify-center">
                     <span class="text-sm font-bold text-[#111418] dark:text-white">¥{{ item.price.toFixed(2) }}</span>
@@ -190,61 +180,43 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useCartStore } from '@/stores/cart'
+import { useAuthStore } from '@/stores/auth'
+import AppHeader from '@/components/AppHeader.vue'
 
 const router = useRouter()
+const cartStore = useCartStore()
+const authStore = useAuthStore()
 
 // 表单数据
 const formData = ref({
   dormitory: '',
   roomNumber: '',
   phone: '',
-  saveAddress: true,
+  saveAddress: false,
   paymentType: 'campus-card',
   cardNumber: ''
 })
 
-// 购物车商品数量
-const cartItemCount = ref(3)
+// 成色映射
+const conditionMap = {
+  'LIKE_NEW': '九五新',
+  'GOOD': '八成新',
+  'FAIR': '七成新'
+}
 
-// 订单商品列表
-const orderItems = ref([
-  {
-    id: 1,
-    title: 'Calculus: Early Transcendentals',
-    author: 'James Stewart',
-    edition: 8,
-    condition: '良 (Good)',
-    conditionColor: 'text-emerald-600',
-    price: 45.00,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDygG2P7pGZAQzK5HvuBxwCAQqzMVHJw6ZHrj7FCAfZfMCDfIp8izEw7B8mV9gAbNQXAHBroNKqNCiq0S4aoEZA-8DWucFmiEmz66g8NEuTQysjoC72wdmplKuJRXIVoCC21aTC6m61Ecczx3-01EQYaB_ROHidAZXUsIigQWxSRhe7jF3atSbPCOQiCc_53eO8aCnrrUtEHx2sATZUWbu0hJ1HEuU6tYxE2pf_LSYxPtsIOryNegsxXO6LLbZ2YTKGiL7TX_KQibwv'
-  },
-  {
-    id: 2,
-    title: 'Introduction to Psychology',
-    author: 'Kalat',
-    edition: 11,
-    condition: '中 (Fair)',
-    conditionColor: 'text-amber-600',
-    price: 20.00,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDUc5FplUnYe9elCoClU8n9usIaL_CbJ1VMmXJc3GJwBed8tg60K8cCdMklssz0fCJCT-hgCojLlqNnxfr6JXDqrrohrmvsZLTTaPw8pDj6ndZfIATtQxoUZN3V_scyL_bVnzGTl_VwxP4b8GA0VTZnV_5z_hF-cyZMSG_1ceJ_K3kAOqw1jJF5ZmFvfsIWjh6xpjw8FWVWerThwYLKrbsMjPIt33c4XInsgPS2MNI5w1WUL_Ft3C2mb46B2CCP63He8gGZLZqRi5K_'
-  },
-  {
-    id: 3,
-    title: 'Molecular Biology of the Cell',
-    author: 'Alberts',
-    edition: 6,
-    condition: '九九新 (Like New)',
-    conditionColor: 'text-emerald-600',
-    price: 55.00,
-    image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA6LAg9Fc1vnx2NZoq_CisIq3jlv2avqjR6sRNNoHta4TVoapcxFMhEogNgOtL38ymjO5zTAind4Yqb1DS_xnnX0X6Gbe7Dnt-iBM1qrCY7XByM7rzQS5PyGkoDyfK-y-bA9SGIpVYVtCbR4yi71QhKmDyepFFOS1SbA2DVkzPvs4L11P5maDCJbifA2CVofbGMVjmwefT2F45EHZjGnj-quaVEJec-66EiWplToVTnD-wkxK3WzWossI4exVmpUC-LQcjhQXpwHtSD'
-  }
-])
+// 成色颜色映射
+const conditionColorMap = {
+  'LIKE_NEW': 'text-emerald-600',
+  'GOOD': 'text-blue-600',
+  'FAIR': 'text-amber-600'
+}
 
 // 计算商品小计
 const subtotal = computed(() => {
-  return orderItems.value.reduce((sum, item) => sum + item.price, 0)
+  return cartStore.itemsWithDetails?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0
 })
 
 // 计算服务费 (5%)
@@ -257,8 +229,33 @@ const totalPrice = computed(() => {
   return subtotal.value + serviceFee.value
 })
 
+// 页面加载时获取购物车详情和用户信息
+onMounted(async () => {
+  // 如果购物车为空，跳转到购物车页面
+  if (cartStore.isEmpty) {
+    alert('购物车为空，请先添加商品')
+    router.push('/cart')
+    return
+  }
+  
+  await cartStore.fetchCartDetails()
+  
+  // 加载用户默认地址和卡号信息
+  if (authStore.user) {
+    formData.value.dormitory = authStore.user.default_dormitory || ''
+    formData.value.roomNumber = authStore.user.default_room_number || ''
+    formData.value.phone = authStore.user.phone || ''
+    formData.value.cardNumber = authStore.user.campus_card_number || ''
+    
+    // 如果有保存的地址，默认勾选保存地址
+    if (authStore.user.default_dormitory) {
+      formData.value.saveAddress = true
+    }
+  }
+})
+
 // 提交订单
-const submitOrder = () => {
+const submitOrder = async () => {
   // 验证表单
   if (!formData.value.dormitory) {
     alert('请选择宿舍楼')
@@ -280,18 +277,68 @@ const submitOrder = () => {
     return
   }
   
-  // TODO: 实现订单提交逻辑
-  console.log('订单信息:', {
-    formData: formData.value,
-    orderItems: orderItems.value,
-    totalPrice: totalPrice.value
-  })
+  // 如果用户勾选了保存地址，保存到数据库
+  if (formData.value.saveAddress) {
+    try {
+      await authStore.updateProfile({
+        defaultDormitory: formData.value.dormitory,
+        defaultRoomNumber: formData.value.roomNumber,
+        phone: formData.value.phone,
+        campusCardNumber: formData.value.cardNumber
+      })
+    } catch (error) {
+      console.error('保存地址信息失败:', error)
+      // 保存失败不阻挡订单提交
+    }
+  }
   
-  // 模拟订单提交成功
-  alert(`订单提交成功！\n总金额：¥${totalPrice.value.toFixed(2)}`)
-  
-  // 跳转到订单确认页或首页
-  router.push('/')
+  try {
+    // 导入订单API
+    const { createOrder } = await import('@/api/orders')
+    
+    // 为每本书创建一个订单（后端目前只支持单本书订单）
+    const orderPromises = cartStore.itemsWithDetails.map(item => {
+      return createOrder({
+        bookId: item.bookId,
+        building: formData.value.dormitory,
+        room: formData.value.roomNumber,
+        phone: formData.value.phone,
+        paymentType: formData.value.paymentType
+      })
+    })
+    
+    // 等待所有订单创建完成
+    const results = await Promise.all(orderPromises)
+    
+    // 检查是否有失败的订单
+    const failedOrders = results.filter(r => r.code !== 200)
+    if (failedOrders.length > 0) {
+      const errorMsg = failedOrders[0].message || '订单创建失败'
+      // 特别处理余额不足的情况
+      if (failedOrders[0].code === 1006) {
+        alert(`余额不足！\n${errorMsg}\n\n请先充值后再购买。`)
+      } else {
+        alert(`订单创建失败：${errorMsg}`)
+      }
+      return
+    }
+    
+    // 所有订单创建成功
+    alert(`订单提交成功！
+共创建 ${results.length} 个订单
+总金额：¥${totalPrice.value.toFixed(2)}
+
+请到个人中心查看订单详情。`)
+    
+    // 清空购物车
+    cartStore.clearCart()
+    
+    // 跳转到个人中心订单页
+    router.push('/profile')
+  } catch (error) {
+    console.error('订单提交失败:', error)
+    alert('订单提交失败：' + (error.message || '请稍后再试'))
+  }
 }
 </script>
 

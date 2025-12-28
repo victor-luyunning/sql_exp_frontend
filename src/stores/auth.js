@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { login as loginApi, logout as logoutApi } from '../api/auth'
-import { getUserInfo as getUserInfoApi } from '../api/users'
+import { getUserInfo as getUserInfoApi, updateUserInfo as updateUserInfoApi } from '../api/users'
 
 export const useAuthStore = defineStore('auth', () => {
   // 状态
@@ -63,13 +63,29 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // 更新用户信息
+  const updateProfile = async (data) => {
+    try {
+      const res = await updateUserInfoApi(data)
+      // 更新本地存储的用户信息
+      userInfo.value = { ...userInfo.value, ...res.data }
+      localStorage.setItem('userInfo', JSON.stringify(userInfo.value))
+      return res
+    } catch (error) {
+      console.error('更新用户信息失败:', error)
+      throw error
+    }
+  }
+
   return {
     token,
     userInfo,
+    user: userInfo, // 添加 user 别名以兼容
     isLoggedIn,
     username,
     login,
     logout,
-    fetchUserInfo
+    fetchUserInfo,
+    updateProfile
   }
 })

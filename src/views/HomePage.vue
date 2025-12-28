@@ -24,11 +24,16 @@
           <div v-if="isLoggedIn" class="flex items-center gap-4 relative">
             <!-- 头像下拉菜单 -->
             <div class="relative">
-              <div 
-                class="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-600 bg-center bg-cover cursor-pointer" 
-                style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAZhHmp6dKGTH7i6IzXoyl366MP3sv8uBtn0Nqd0P8KrH__qWygXpscIspS5CRI5J_os3hYMNcMcho72imbDZCAm-o-kmrrIaXFWgc4XjLU0RInjnBrVZADF18FRC0NAGK-G2WaXZWXciPZtK2VT2uk1qhBprMcnIJfRGzSVObG_LUMwc38GBPO2MKH6tLjGuIUMNnBBFKXqe8qjr10SIGn5NQZDcdh9b18lz_JmDi76Kqi_Gg_9xJfrAbX5Wd-cvT7k9ZeM2b8vdDN");'
-                @click="toggleDropdown"
-              ></div>
+              <div class="relative">
+                <div 
+                  class="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-600 bg-center bg-cover cursor-pointer border-2" 
+                  :style="`background-image: url('${authStore.userInfo?.avatar || 'https://lh3.googleusercontent.com/aida-public/AB6AXuCViKVOfHqt2-9UnYUpEzs287y79wFyt5RgXZoljAsZiXY1Yv6Ek-JedzvHPJdmnvPaDQe6xgkvDKfWJHAcfPSGQrRelaSox-PHSs0Nw6IHc50RANilEH_OBiupphEPR5sK43w8MznzWnnkXMRoOg77t61Aw0TR_VfYZgRPlsim9N9UWKAW1KgC9Bdq644UXAxAEUgFcFrPmz35qhR5jbyKyb11O8RrueWZmCT7fpDh2HLrhusLNEZrm4hrS8jwyQEb7bIRcBNaenJw'}');`"
+                  @click="toggleDropdown"
+                ></div>
+                <div class="absolute bottom-0 right-0 bg-green-500 rounded-full p-0.5 border border-white">
+                  <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+                </div>
+              </div>
               
               <!-- 下拉菜单 -->
               <div 
@@ -47,9 +52,13 @@
                 <div class="flex flex-col items-center gap-4 pt-2">
                   <!-- 头像 -->
                   <div 
-                    class="h-20 w-20 rounded-full bg-slate-200 dark:bg-slate-600 bg-center bg-cover" 
-                    :style="isLoggedIn ? `background-image: url('${authStore.userInfo?.avatar || 'https://lh3.googleusercontent.com/aida-public/AB6AXuAZhHmp6dKGTH7i6IzXoyl366MP3sv8uBtn0Nqd0P8KrH__qWygXpscIspS5CRI5J_os3hYMNcMcho72imbDZCAm-o-kmrrIaXFWgc4XjLU0RInjnBrVZADF18FRC0NAGK-G2WaXZWXciPZtK2VT2uk1qhBprMcnIJfRGzSVObG_LUMwc38GBPO2MKH6tLjGuIUMNnBBFKXqe8qjr10SIGn5NQZDcdh9b18lz_JmDi76Kqi_Gg_9xJfrAbX5Wd-cvT7k9ZeM2b8vdDN'}');` : 'background-image: url(https://ui-avatars.com/api/?name=请登录&background=0D8ABC&color=fff);'"
-                  ></div>
+                    class="h-20 w-20 rounded-full bg-slate-200 dark:bg-slate-600 bg-center bg-cover border-2 relative" 
+                    :style="isLoggedIn ? `background-image: url('${authStore.userInfo?.avatar || 'https://lh3.googleusercontent.com/aida-public/AB6AXuCViKVOfHqt2-9UnYUpEzs287y79wFyt5RgXZoljAsZiXY1Yv6Ek-JedzvHPJdmnvPaDQe6xgkvDKfWJHAcfPSGQrRelaSox-PHSs0Nw6IHc50RANilEH_OBiupphEPR5sK43w8MznzWnnkXMRoOg77t61Aw0TR_VfYZgRPlsim9N9UWKAW1KgC9Bdq644UXAxAEUgFcFrPmz35qhR5jbyKyb11O8RrueWZmCT7fpDh2HLrhusLNEZrm4hrS8jwyQEb7bIRcBNaenJw'}');` : 'background-image: url(https://ui-avatars.com/api/?name=请登录&background=0D8ABC&color=fff);'"
+                  >
+                    <div v-if="isLoggedIn" class="absolute bottom-0 right-0 bg-green-500 rounded-full p-0.5 border-2 border-white">
+                      <div class="w-2.5 h-2.5 rounded-full bg-white"></div>
+                    </div>
+                  </div>
                   
                   <!-- 用户名 -->
                   <div class="text-center">

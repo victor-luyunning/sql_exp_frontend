@@ -25,7 +25,10 @@
               class="w-full h-full bg-transparent border-none focus:ring-0 text-text-main dark:text-white placeholder:text-slate-400 text-base" 
               placeholder="试试搜索 '高等数学' 或 '978-0134093413'..."
             />
-            <button @click="handleSearch" class="m-1 h-10 px-6 rounded-lg bg-primary hover:bg-primary-dark text-white font-bold text-sm transition-colors">
+            <button 
+              @click="handleSearch" 
+              class="m-1 h-10 px-6 rounded-lg bg-primary hover:bg-primary-dark text-white font-bold text-sm transition-colors whitespace-nowrap flex-shrink-0"
+            >
               搜索
             </button>
           </div>
@@ -71,39 +74,33 @@
             </div>
           </details>
 
-          <!-- 院系筛选 -->
-          <details class="group rounded-lg bg-surface-light dark:bg-surface-dark border border-slate-200 dark:border-slate-700 overflow-hidden">
-            <summary class="flex cursor-pointer items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors select-none">
-              <span class="font-bold text-text-main dark:text-white text-sm">院系/专业</span>
-              <span class="material-symbols-outlined text-text-muted transition-transform group-open:rotate-180 text-lg">expand_more</span>
-            </summary>
-            <div class="px-4 pb-4 pt-1 space-y-2">
-              <label class="flex items-center gap-3 cursor-pointer">
-                <input v-model="filters.departments" value="数学系" class="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4 bg-white dark:bg-slate-800 dark:border-slate-600" type="checkbox"/>
-                <span class="text-sm text-text-main dark:text-gray-300">数学系</span>
-              </label>
-              <label class="flex items-center gap-3 cursor-pointer">
-                <input v-model="filters.departments" value="计算机科学" class="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4 bg-white dark:bg-slate-800 dark:border-slate-600" type="checkbox"/>
-                <span class="text-sm text-text-main dark:text-gray-300">计算机科学</span>
-              </label>
-              <label class="flex items-center gap-3 cursor-pointer">
-                <input v-model="filters.departments" value="历史系" class="rounded border-slate-300 text-primary focus:ring-primary h-4 w-4 bg-white dark:bg-slate-800 dark:border-slate-600" type="checkbox"/>
-                <span class="text-sm text-text-main dark:text-gray-300">历史系</span>
-              </label>
-            </div>
-          </details>
-
           <!-- 价格范围 -->
           <details class="group rounded-lg bg-surface-light dark:bg-surface-dark border border-slate-200 dark:border-slate-700 overflow-hidden" open>
             <summary class="flex cursor-pointer items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors select-none">
               <span class="font-bold text-text-main dark:text-white text-sm">价格范围</span>
               <span class="material-symbols-outlined text-text-muted transition-transform group-open:rotate-180 text-lg">expand_more</span>
             </summary>
-            <div class="px-4 pb-4 pt-1">
-              <input v-model="filters.maxPrice" class="w-full h-2 bg-slate-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-primary" max="200" min="0" type="range"/>
-              <div class="flex justify-between mt-2 text-xs text-text-muted dark:text-gray-400 font-medium">
-                <span>¥0</span>
-                <span>¥{{ filters.maxPrice }}+</span>
+            <div class="px-4 pb-4 pt-1 space-y-3">
+              <div class="flex items-center gap-2">
+                <input 
+                  v-model.number="filters.minPrice" 
+                  type="number" 
+                  min="0" 
+                  placeholder="最低价" 
+                  class="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-text-main dark:text-white text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+                <span class="text-text-muted dark:text-gray-400 text-sm">—</span>
+                <input 
+                  v-model.number="filters.maxPrice" 
+                  type="number" 
+                  min="0" 
+                  placeholder="最高价" 
+                  class="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-text-main dark:text-white text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+              </div>
+              <div class="flex items-center justify-between text-xs text-text-muted dark:text-gray-400">
+                <span>¥{{ filters.minPrice || 0 }}</span>
+                <span>¥{{ filters.maxPrice || '无限' }}</span>
               </div>
             </div>
           </details>
@@ -131,34 +128,51 @@
         </div>
 
         <!-- Book List -->
-        <div class="flex flex-col gap-4">
-          <!-- Book Card 1 -->
-          <article @click="goToBook(1)" class="group flex flex-col md:flex-row bg-surface-light dark:bg-surface-dark border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer">
+        <div v-if="loading" class="flex justify-center items-center py-20">
+          <div class="text-text-muted dark:text-gray-400">加载中...</div>
+        </div>
+        
+        <div v-else-if="books.length === 0" class="flex flex-col items-center justify-center py-20">
+          <span class="material-symbols-outlined text-6xl text-text-muted dark:text-gray-600 mb-4">search_off</span>
+          <p class="text-text-muted dark:text-gray-400 text-lg">没有找到相关教材</p>
+          <p class="text-text-muted dark:text-gray-500 text-sm mt-2">试试其他关键词吧</p>
+        </div>
+        
+        <div v-else class="flex flex-col gap-4">
+          <!-- 动态渲染书籍卡片 -->
+          <article 
+            v-for="book in books" 
+            :key="book.id" 
+            @click="goToBook(book.id)" 
+            class="group flex flex-col md:flex-row bg-surface-light dark:bg-surface-dark border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer"
+          >
             <div class="w-full md:w-48 h-48 md:h-auto shrink-0 bg-slate-100 dark:bg-slate-800 relative flex items-center justify-center p-4">
-              <img alt="Book cover" class="h-full w-auto object-contain shadow-md rounded-sm transform group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLZN-kyOvw06CnxgknUDOnzaRu0UJLQqXQds94RiUI4pn6anBiMGHrcBbsxs9zfO51ip4pKQB-YiLZWsfwr-CAJ0H-_5dsyjsjZ6nRV1MdT07c9oEJ4owrk4TODCY2Jd9GC-qri_qOXU09bW6DQSD4ogf_bpZD7hrPv55Xcprzli-_SDZ_WpGsUYHMBMns1vymLdCdHoO2wKfPnmCYVcS5tveWD0akeg3kEVAFWFiXXS3ewikBOAoYCWEvb221w7wVjRp5bMFP_V2N"/>
+              <img 
+                :alt="book.title" 
+                class="h-full w-auto object-contain shadow-md rounded-sm transform group-hover:scale-105 transition-transform duration-300" 
+                :src="book.cover_image || 'https://via.placeholder.com/200x280?text=No+Cover'"
+                @error="$event.target.src='https://via.placeholder.com/200x280?text=No+Cover'"
+              />
             </div>
             <div class="flex-1 p-5 flex flex-col justify-between">
               <div class="flex flex-col md:flex-row justify-between gap-4">
                 <div class="space-y-2">
-                  <div class="flex flex-wrap gap-2">
-                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">MATH 101</span>
-                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">精装版</span>
-                  </div>
-                  <h3 class="text-xl font-bold text-text-main dark:text-white group-hover:text-primary transition-colors">Calculus: Early Transcendentals</h3>
+                  <h3 class="text-xl font-bold text-text-main dark:text-white group-hover:text-primary transition-colors">{{ book.title }}</h3>
                   <div class="text-sm text-text-muted dark:text-gray-400">
-                    <p>作者 <span class="font-medium text-text-main dark:text-gray-200">James Stewart</span> • 第8版</p>
-                    <p class="font-mono text-xs mt-1">ISBN: 978-1285741550</p>
+                    <p>作者 <span class="font-medium text-text-main dark:text-gray-200">{{ book.author }}</span></p>
+                    <p class="font-mono text-xs mt-1">ISBN: {{ book.isbn }}</p>
                   </div>
                   <div class="flex gap-2 pt-2">
-                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 text-xs font-medium border border-green-200 dark:border-green-800">
-                      <span class="material-symbols-outlined text-[14px]">check_circle</span> 成色: 良好
+                    <span :class="['inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium border', getConditionClass(book.condition)]">
+                      <span class="material-symbols-outlined text-[14px]">{{ getConditionIcon(book.condition) }}</span> 
+                      成色: {{ getConditionLabel(book.condition) }}
                     </span>
                   </div>
                 </div>
                 <div class="flex flex-row md:flex-col justify-between items-center md:items-end gap-2 text-right">
                   <div>
-                    <p class="text-2xl font-black text-primary">¥45.00</p>
-                    <p class="text-xs text-text-muted dark:text-gray-500 line-through">新书估价 ¥120.00</p>
+                    <p class="text-2xl font-black text-primary">¥{{ book.price.toFixed(2) }}</p>
+                    <p v-if="book.original_price" class="text-xs text-text-muted dark:text-gray-500 line-through">新书估价 ¥{{ book.original_price.toFixed(2) }}</p>
                   </div>
                   <button class="hidden md:flex h-9 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold text-sm px-4 hover:bg-primary hover:text-white transition-all">
                     查看详情
@@ -167,115 +181,9 @@
               </div>
               <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                  <div class="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-600 bg-center bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCM9g-4_NL7OUTkYmFCOFgw9RE0sfqBnmP7z_kmXtj1pJ_MzjSqhtUZ_ZGIl177gHMWJWY0GdnoXdMbZvQcfpTuFJ6MacYD9c8O4h2tpZXJx8jqrbMQq_xkm0q6Y8zK-TPFsFQRruYxuoWnmeX6iLfIeMcT52En_HDcVPsi4poPEBg4_yNLKWJkqc4n8f71MFPKa8aQPA_x_qXz2bkc4DFpdcL_vygWh_wFDOu7BmOVEzzDSVNC-w8f1ACPHKdF0sBLjMkEJcxfNxVq");'></div>
+                  <div class="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-600 bg-center bg-cover" :style="book.seller_avatar ? `background-image: url('${book.seller_avatar}')` : ''"></div>
                   <div class="text-sm">
-                    <p class="font-medium text-text-main dark:text-white leading-none">Alex M.</p>
-                    <div class="flex items-center gap-1 text-xs text-text-muted dark:text-gray-400 mt-1">
-                      <span class="material-symbols-outlined text-yellow-400 text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
-                      <span>4.8 (12)</span>
-                    </div>
-                  </div>
-                </div>
-                <button class="md:hidden h-9 items-center justify-center rounded-lg bg-primary text-white font-bold text-sm px-4 shadow-sm">
-                  查看详情
-                </button>
-              </div>
-            </div>
-          </article>
-
-          <!-- Book Card 2 -->
-          <article @click="goToBook(2)" class="group flex flex-col md:flex-row bg-surface-light dark:bg-surface-dark border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer">
-            <div class="w-full md:w-48 h-48 md:h-auto shrink-0 bg-slate-100 dark:bg-slate-800 relative flex items-center justify-center p-4">
-              <img alt="Book cover" class="h-full w-auto object-contain shadow-md rounded-sm transform group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhzlW_wmuoivdbxSN0fqxtUz99DIDWKDl_ganKtCUk3NQodwagrcxntA2u5vzGVO0m_uBJ3xLSpCEHDE-HSdQYTscBt9CkBB5KsFBWNCj1D6ZN1y8LdZqmJBHJ_S6biMKzeXvNjOdml71nqYQoKv5aCexnkwbfL9R77fW3_wOug6CArEirU6L55BDkaGj7uQ2GO_vBuwWHv2w5NcL02MqIdCZhzavYR3W-GbeCiexcqAl1YOEZ2cfGoYc2kjGiCAxV_Ot3Q15iIkHn"/>
-            </div>
-            <div class="flex-1 p-5 flex flex-col justify-between">
-              <div class="flex flex-col md:flex-row justify-between gap-4">
-                <div class="space-y-2">
-                  <div class="flex flex-wrap gap-2">
-                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">MATH 201</span>
-                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300">平装版</span>
-                  </div>
-                  <h3 class="text-xl font-bold text-text-main dark:text-white group-hover:text-primary transition-colors">Essential Calculus: Early Transcendentals</h3>
-                  <div class="text-sm text-text-muted dark:text-gray-400">
-                    <p>作者 <span class="font-medium text-text-main dark:text-gray-200">James Stewart</span> • 第2版</p>
-                    <p class="font-mono text-xs mt-1">ISBN: 978-1133112280</p>
-                  </div>
-                  <div class="flex gap-2 pt-2">
-                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 text-xs font-medium border border-yellow-200 dark:border-yellow-800">
-                      <span class="material-symbols-outlined text-[14px]">info</span> 成色: 一般
-                    </span>
-                  </div>
-                </div>
-                <div class="flex flex-row md:flex-col justify-between items-center md:items-end gap-2 text-right">
-                  <div>
-                    <p class="text-2xl font-black text-primary">¥25.00</p>
-                    <p class="text-xs text-text-muted dark:text-gray-500 line-through">新书估价 ¥95.00</p>
-                  </div>
-                  <button class="hidden md:flex h-9 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold text-sm px-4 hover:bg-primary hover:text-white transition-all">
-                    查看详情
-                  </button>
-                </div>
-              </div>
-              <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <div class="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-600 bg-center bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDgr9G4ukC4t_8oZjcYB2yTn0y_O4bkMsQ-AUapFbuWaFJF6FQGAEZ5bP8neilxynR2rGbi3FZS3rq668F0601YYyut6mvOBJJaRuSF3KWN2Iy_3ON6SqvR8mAYU4rdTwCja15N3xPKEzw0tfvkJ5gHv-KWu4wMjf7zcbskJsp5dbIy0OYLna5zFrlJa9qko6EbA2VmsSwdy3awAaTZuziKTXYaWHcjNX-SUW_qjvcMmDI2mA1xbNcLBrV_48-2CkY05HBMKhqoJHdO");'></div>
-                  <div class="text-sm">
-                    <p class="font-medium text-text-main dark:text-white leading-none">Sarah J.</p>
-                    <div class="flex items-center gap-1 text-xs text-text-muted dark:text-gray-400 mt-1">
-                      <span class="material-symbols-outlined text-yellow-400 text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
-                      <span>5.0 (3)</span>
-                    </div>
-                  </div>
-                </div>
-                <button class="md:hidden h-9 items-center justify-center rounded-lg bg-primary text-white font-bold text-sm px-4 shadow-sm">
-                  查看详情
-                </button>
-              </div>
-            </div>
-          </article>
-
-          <!-- Book Card 3 -->
-          <article @click="goToBook(3)" class="group flex flex-col md:flex-row bg-surface-light dark:bg-surface-dark border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer">
-            <div class="w-full md:w-48 h-48 md:h-auto shrink-0 bg-slate-100 dark:bg-slate-800 relative flex items-center justify-center p-4">
-              <img alt="Book cover" class="h-full w-auto object-contain shadow-md rounded-sm transform group-hover:scale-105 transition-transform duration-300" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJNKsrx7qNdBwEW-hmil7VUeupXYoD0NIzquL7kyfj2J2DDN0daT0F_NBDmDhy_spPfmxd7z1q6OLRaznVqJMuJyh78H-FLIWm007qy92gBROKH_lK9WIqWFZkF4-aqC4sZd3UnwwZGb_dWtBCPfDjZpOzNHGkvvxyG9Kh7D5tm1jhZHzA0Hr9deu5JThE5Hjz5IpGnI1-HLxAJuLM94lQ9H_j03jABNZQApGUHZRL_cgh2txwhb6Ysoay0WWwuGxGKnhnUXOKmwEP"/>
-            </div>
-            <div class="flex-1 p-5 flex flex-col justify-between">
-              <div class="flex flex-col md:flex-row justify-between gap-4">
-                <div class="space-y-2">
-                  <div class="flex flex-wrap gap-2">
-                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">CS 220</span>
-                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">精装版</span>
-                  </div>
-                  <h3 class="text-xl font-bold text-text-main dark:text-white group-hover:text-primary transition-colors">Linear Algebra and Its Applications</h3>
-                  <div class="text-sm text-text-muted dark:text-gray-400">
-                    <p>作者 <span class="font-medium text-text-main dark:text-gray-200">David C. Lay</span> • 第5版</p>
-                    <p class="font-mono text-xs mt-1">ISBN: 978-0321982384</p>
-                  </div>
-                  <div class="flex gap-2 pt-2">
-                    <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 text-xs font-medium border border-blue-200 dark:border-blue-800">
-                      <span class="material-symbols-outlined text-[14px]">auto_awesome</span> 成色: 九九新
-                    </span>
-                  </div>
-                </div>
-                <div class="flex flex-row md:flex-col justify-between items-center md:items-end gap-2 text-right">
-                  <div>
-                    <p class="text-2xl font-black text-primary">¥60.00</p>
-                    <p class="text-xs text-text-muted dark:text-gray-500 line-through">新书估价 ¥150.00</p>
-                  </div>
-                  <button class="hidden md:flex h-9 items-center justify-center rounded-lg bg-primary/10 text-primary font-bold text-sm px-4 hover:bg-primary hover:text-white transition-all">
-                    查看详情
-                  </button>
-                </div>
-              </div>
-              <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <div class="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-600 bg-center bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBCCkVwlNk-DbkOB7b3vUH2qEpMcWAwwxgrxLWloxO2UoHzJcYhMyPWH29HYenwXiGE7To5T4yRApweB0BZgfSmP9evM3NXFz8bDdhK5Pik7PDWHCioZopjXQXzCaVHBcfjsufuSnMg0ralqedkuPMbqPrJ7ehPrTQ_KLhFOnInx885khtFsoWywDjVgmRY64yilryAsUsAliQ0z3pqVc602A_4qt5pwM66i9CFvp7erDMZLdrrUdVK2bW0EurLX362VzdURUbvvxCg");'></div>
-                  <div class="text-sm">
-                    <p class="font-medium text-text-main dark:text-white leading-none">Emily W.</p>
-                    <div class="flex items-center gap-1 text-xs text-text-muted dark:text-gray-400 mt-1">
-                      <span class="material-symbols-outlined text-yellow-400 text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
-                      <span>4.5 (8)</span>
-                    </div>
+                    <p class="font-medium text-text-main dark:text-white leading-none">{{ book.seller_name || '匿名卖家' }}</p>
                   </div>
                 </div>
                 <button class="md:hidden h-9 items-center justify-center rounded-lg bg-primary text-white font-bold text-sm px-4 shadow-sm">
@@ -287,16 +195,82 @@
         </div>
 
         <!-- Pagination -->
-        <div class="flex justify-center items-center gap-2 pt-8">
-          <button class="flex items-center justify-center size-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-text-muted hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+        <div v-if="books.length > 0" class="flex justify-center items-center gap-2 pt-8">
+          <button 
+            @click="prevPage" 
+            :disabled="currentPage === 1"
+            :class="['flex items-center justify-center size-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-text-muted hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors', currentPage === 1 ? 'opacity-50 cursor-not-allowed' : '']"
+          >
             <span class="material-symbols-outlined">chevron_left</span>
           </button>
-          <button class="flex items-center justify-center size-10 rounded-lg bg-primary text-white font-bold shadow-md shadow-primary/30">1</button>
-          <button class="flex items-center justify-center size-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-text-main dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">2</button>
-          <button class="flex items-center justify-center size-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-text-main dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">3</button>
-          <span class="text-text-muted px-2">...</span>
-          <button class="flex items-center justify-center size-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-text-main dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">12</button>
-          <button class="flex items-center justify-center size-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-text-muted hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+          
+          <!-- 页码按钮 -->
+          <template v-if="totalPages <= 7">
+            <button 
+              v-for="page in totalPages" 
+              :key="page"
+              @click="goToPage(page)"
+              :class="[
+                'flex items-center justify-center size-10 rounded-lg font-bold transition-colors',
+                currentPage === page 
+                  ? 'bg-primary text-white shadow-md shadow-primary/30' 
+                  : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-text-main dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+              ]"
+            >
+              {{ page }}
+            </button>
+          </template>
+          
+          <template v-else>
+            <button 
+              @click="goToPage(1)"
+              :class="[
+                'flex items-center justify-center size-10 rounded-lg font-bold transition-colors',
+                currentPage === 1 
+                  ? 'bg-primary text-white shadow-md shadow-primary/30' 
+                  : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-text-main dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+              ]"
+            >
+              1
+            </button>
+            
+            <span v-if="currentPage > 3" class="text-text-muted px-2">...</span>
+            
+            <template v-for="page in [currentPage - 1, currentPage, currentPage + 1]" :key="page">
+              <button 
+                v-if="page > 1 && page < totalPages"
+                @click="goToPage(page)"
+                :class="[
+                  'flex items-center justify-center size-10 rounded-lg font-bold transition-colors',
+                  currentPage === page 
+                    ? 'bg-primary text-white shadow-md shadow-primary/30' 
+                    : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-text-main dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+                ]"
+              >
+                {{ page }}
+              </button>
+            </template>
+            
+            <span v-if="currentPage < totalPages - 2" class="text-text-muted px-2">...</span>
+            
+            <button 
+              @click="goToPage(totalPages)"
+              :class="[
+                'flex items-center justify-center size-10 rounded-lg font-bold transition-colors',
+                currentPage === totalPages 
+                  ? 'bg-primary text-white shadow-md shadow-primary/30' 
+                  : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-text-main dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-slate-700'
+              ]"
+            >
+              {{ totalPages }}
+            </button>
+          </template>
+          
+          <button 
+            @click="nextPage" 
+            :disabled="currentPage === totalPages"
+            :class="['flex items-center justify-center size-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-text-muted hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors', currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : '']"
+          >
             <span class="material-symbols-outlined">chevron_right</span>
           </button>
         </div>
@@ -313,39 +287,107 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
+import { searchBooks } from '../api/books'
 
 const route = useRoute()
 const router = useRouter()
 
+// 搜索相关
 const searchQuery = ref('')
 const searchType = ref('title')
 const sortBy = ref('relevance')
-const totalResults = ref(124)
 
+// 书籍列表数据
+const books = ref([])
+const totalResults = ref(0)
+const loading = ref(false)
+
+// 分页
+const currentPage = ref(1)
+const pageSize = ref(10)
+const totalPages = computed(() => Math.ceil(totalResults.value / pageSize.value))
+
+// 筛选条件
 const filters = ref({
-  conditions: ['GOOD'],
-  departments: [],
-  maxPrice: 200
+  conditions: [],
+  minPrice: null,
+  maxPrice: null
 })
 
 const displayKeyword = computed(() => {
-  return searchQuery.value || route.query.keyword || '微积分'
+  return searchQuery.value || route.query.keyword || '全部教材'
 })
 
-onMounted(() => {
-  if (route.query.keyword) {
-    searchQuery.value = route.query.keyword
-  } else {
-    searchQuery.value = '微积分'
+// 获取书籍列表
+const fetchBooks = async () => {
+  try {
+    loading.value = true
+    const params = {
+      keyword: searchQuery.value || '',
+      pageNum: currentPage.value,
+      pageSize: pageSize.value,
+      sortBy: sortBy.value
+    }
+
+    // 添加成色筛选
+    if (filters.value.conditions.length > 0) {
+      // 后端只支持单个成色,取第一个
+      params.condition = filters.value.conditions[0]
+    }
+
+    // 添加价格范围
+    if (filters.value.minPrice !== null && filters.value.minPrice !== '') {
+      params.minPrice = filters.value.minPrice
+    }
+    if (filters.value.maxPrice !== null && filters.value.maxPrice !== '') {
+      params.maxPrice = filters.value.maxPrice
+    }
+
+    const response = await searchBooks(params)
+    if (response.code === 200) {
+      books.value = response.data.records || []
+      totalResults.value = response.data.total || 0
+    }
+  } catch (error) {
+    console.error('获取书籍列表失败:', error)
+    books.value = []
+    totalResults.value = 0
+  } finally {
+    loading.value = false
   }
+}
+
+// 监听路由变化
+watch(() => route.query.keyword, (newKeyword) => {
+  // 支持空关键词(显示全部)
+  searchQuery.value = newKeyword || ''
+  currentPage.value = 1
+  fetchBooks()
+})
+
+// 监听筛选条件变化
+watch([filters, sortBy], () => {
+  currentPage.value = 1
+  fetchBooks()
+}, { deep: true })
+
+onMounted(() => {
+  // 从URL参数获取关键词,如果没有则为空(显示全部)
+  searchQuery.value = route.query.keyword || ''
+  fetchBooks()
 })
 
 const handleSearch = () => {
-  if (searchQuery.value.trim()) {
-    router.push({ path: '/search', query: { keyword: searchQuery.value } })
+  // 支持空搜索,显示全部书籍
+  const keyword = searchQuery.value.trim()
+  if (keyword) {
+    router.push({ path: '/search', query: { keyword } })
+  } else {
+    // 清空搜索,显示全部
+    router.push({ path: '/search' })
   }
 }
 
@@ -356,12 +398,62 @@ const setSearchType = (type) => {
 const resetFilters = () => {
   filters.value = {
     conditions: [],
-    departments: [],
-    maxPrice: 200
+    minPrice: null,
+    maxPrice: null
   }
 }
 
 const goToBook = (id) => {
   router.push(`/book/${id}`)
+}
+
+// 分页功能
+const goToPage = (page) => {
+  if (page >= 1 && page <= totalPages.value) {
+    currentPage.value = page
+    fetchBooks()
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+    fetchBooks()
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+    fetchBooks()
+  }
+}
+
+// 成色映射
+const getConditionLabel = (condition) => {
+  const map = {
+    'LIKE_NEW': '九九新',
+    'GOOD': '良好',
+    'FAIR': '一般'
+  }
+  return map[condition] || condition
+}
+
+const getConditionClass = (condition) => {
+  const map = {
+    'LIKE_NEW': 'bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800',
+    'GOOD': 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800',
+    'FAIR': 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800'
+  }
+  return map[condition] || 'bg-gray-100 dark:bg-gray-900/20 text-gray-700 dark:text-gray-400 border-gray-200 dark:border-gray-800'
+}
+
+const getConditionIcon = (condition) => {
+  const map = {
+    'LIKE_NEW': 'auto_awesome',
+    'GOOD': 'check_circle',
+    'FAIR': 'info'
+  }
+  return map[condition] || 'info'
 }
 </script>

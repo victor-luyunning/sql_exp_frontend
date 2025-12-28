@@ -39,10 +39,10 @@
               <div class="flex flex-col flex-1 gap-4 w-full">
                 <div class="flex flex-col gap-1 text-center md:text-left">
                   <div class="flex items-center justify-center md:justify-start gap-3">
-                    <h2 class="text-2xl font-bold text-[#111418] dark:text-white">{{ userInfo.username || '李明' }}</h2>
+                    <h2 class="text-2xl font-bold text-[#111418] dark:text-white">{{ userInfo.username || '未设置用户名' }}</h2>
                     <span class="inline-flex items-center rounded-md bg-blue-50 dark:bg-blue-900/30 px-2 py-1 text-xs font-medium text-blue-700 dark:text-blue-300 ring-1 ring-inset ring-blue-700/10">已认证学生</span>
                   </div>
-                  <p class="text-[#617589] dark:text-[#9aaebf] text-sm">{{ userInfo.bio || 'Always be coding.' }}</p>
+                  <p class="text-[#617589] dark:text-[#9aaebf] text-sm">{{ userInfo.bio || '这个人很懒,还没有留下什么~' }}</p>
                 </div>
 
                 <!-- User Info Grid -->
@@ -50,22 +50,39 @@
                   <div class="flex items-center gap-2">
                     <span class="material-symbols-outlined text-[#9aaebf] text-[18px]">badge</span>
                     <span class="text-[#617589] dark:text-[#9aaebf]">学号:</span>
-                    <span class="font-medium text-[#111418] dark:text-white">{{ userInfo.studentId || '2021008542' }}</span>
+                    <span :class="userInfo.studentId ? 'font-medium text-[#111418] dark:text-white' : 'text-[#9aaebf] italic'">{{ userInfo.studentId || '未填写' }}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[#9aaebf] text-[18px]">phone</span>
+                    <span class="text-[#617589] dark:text-[#9aaebf]">手机号:</span>
+                    <span :class="userInfo.phone ? 'font-medium text-[#111418] dark:text-white' : 'text-[#9aaebf] italic'">{{ userInfo.phone || '未填写' }}</span>
                   </div>
                   <div class="flex items-center gap-2">
                     <span class="material-symbols-outlined text-[#9aaebf] text-[18px]">school</span>
                     <span class="text-[#617589] dark:text-[#9aaebf]">学院:</span>
-                    <span class="font-medium text-[#111418] dark:text-white">{{ userInfo.department || '计算机科学与技术学院' }}</span>
+                    <span :class="userInfo.department ? 'font-medium text-[#111418] dark:text-white' : 'text-[#9aaebf] italic'">{{ userInfo.department || '未填写' }}</span>
                   </div>
                   <div class="flex items-center gap-2">
                     <span class="material-symbols-outlined text-[#9aaebf] text-[18px]">book</span>
                     <span class="text-[#617589] dark:text-[#9aaebf]">专业:</span>
-                    <span class="font-medium text-[#111418] dark:text-white">{{ userInfo.major || '软件工程' }}</span>
+                    <span :class="userInfo.major ? 'font-medium text-[#111418] dark:text-white' : 'text-[#9aaebf] italic'">{{ userInfo.major || '未填写' }}</span>
                   </div>
                   <div class="flex items-center gap-2">
                     <span class="material-symbols-outlined text-[#9aaebf] text-[18px]">calendar_month</span>
                     <span class="text-[#617589] dark:text-[#9aaebf]">年级:</span>
-                    <span class="font-medium text-[#111418] dark:text-white">{{ userInfo.grade || '2021级' }}</span>
+                    <span :class="userInfo.grade ? 'font-medium text-[#111418] dark:text-white' : 'text-[#9aaebf] italic'">{{ userInfo.grade || '未填写' }}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[#9aaebf] text-[18px]">credit_card</span>
+                    <span class="text-[#617589] dark:text-[#9aaebf]">一卡通:</span>
+                    <span :class="userInfo.campus_card_number ? 'font-medium text-[#111418] dark:text-white' : 'text-[#9aaebf] italic'">{{ userInfo.campus_card_number || '未填写' }}</span>
+                  </div>
+                  <div class="flex items-center gap-2 sm:col-span-2">
+                    <span class="material-symbols-outlined text-[#9aaebf] text-[18px]">home</span>
+                    <span class="text-[#617589] dark:text-[#9aaebf]">默认地址:</span>
+                    <span :class="userInfo.default_dormitory ? 'font-medium text-[#111418] dark:text-white' : 'text-[#9aaebf] italic'">
+                      {{ formatAddress(userInfo) }}
+                    </span>
                   </div>
                 </div>
 
@@ -91,23 +108,27 @@
               <!-- Statistics -->
               <div class="flex flex-row md:flex-col justify-between md:justify-center w-full md:w-40 gap-4 border-t md:border-t-0 md:border-l border-[#f0f2f4] dark:border-[#2c3b49] pt-4 md:pt-0 md:pl-6">
                 <div class="text-center">
+                  <p class="text-xs text-[#617589] dark:text-[#9aaebf] mb-1">余额</p>
+                  <p class="text-xl font-bold text-orange-600 dark:text-orange-400">¥{{ (userInfo.balance || 0).toFixed(2) }}</p>
+                </div>
+                <div class="text-center">
                   <p class="text-xs text-[#617589] dark:text-[#9aaebf] mb-1">信誉积分</p>
-                  <p class="text-xl font-bold text-green-600 dark:text-green-400">{{ userStats.creditScore || 98 }}</p>
+                  <p class="text-xl font-bold text-green-600 dark:text-green-400">{{ userStats.creditScore || 100 }}</p>
                 </div>
                 <div class="text-center">
                   <p class="text-xs text-[#617589] dark:text-[#9aaebf] mb-1">已买书籍</p>
-                  <p class="text-xl font-bold text-[#111418] dark:text-white">{{ userStats.purchasedBooks || 12 }}</p>
+                  <p class="text-xl font-bold text-[#111418] dark:text-white">{{ userStats.purchasedBooks }}</p>
                 </div>
                 <div class="text-center">
                   <p class="text-xs text-[#617589] dark:text-[#9aaebf] mb-1">已卖书籍</p>
-                  <p class="text-xl font-bold text-[#111418] dark:text-white">{{ userStats.soldBooks || 5 }}</p>
+                  <p class="text-xl font-bold text-[#111418] dark:text-white">{{ userStats.soldBooks }}</p>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- Orders Section Header -->
-          <div class="px-4 pb-4 flex items-center justify-between">
+          <div class="orders-section px-4 pb-4 flex items-center justify-between">
             <h3 class="text-xl font-bold text-[#111418] dark:text-white">我的订单</h3>
             <a 
               class="text-sm text-primary hover:underline flex items-center gap-1 cursor-pointer"
@@ -252,18 +273,18 @@
   </div>
 
     <!-- Edit Profile Modal -->
-  <div v-if="showEditProfile" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" @click.self="showEditProfile = false">
-    <div class="bg-white dark:bg-[#1a2632] rounded-xl shadow-2xl w-full max-w-md">
+  <div v-if="showEditProfile" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-hidden" @click.self="showEditProfile = false">
+    <div class="bg-white dark:bg-[#1a2632] rounded-xl shadow-2xl w-full max-w-md h-[50vh] flex flex-col">
       <!-- Modal Header -->
-      <div class="sticky top-0 bg-white dark:bg-[#1a2632] border-b border-[#e5e7eb] dark:border-[#22303e] px-6 py-4 flex items-center justify-between">
+      <div class="flex-shrink-0 bg-white dark:bg-[#1a2632] border-b border-[#e5e7eb] dark:border-[#22303e] px-6 py-4 flex items-center justify-between rounded-t-xl">
         <h3 class="text-xl font-bold text-[#111418] dark:text-white">编辑资料</h3>
         <button @click="showEditProfile = false" class="text-[#617589] hover:text-[#111418] dark:hover:text-white transition-colors">
           <span class="material-symbols-outlined text-[24px]">close</span>
         </button>
       </div>
 
-      <!-- Modal Body -->
-      <div class="p-6 space-y-4">
+      <!-- Modal Body - 可滚动区域 -->
+      <div class="flex-1 overflow-y-auto p-6 space-y-4">
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-[#111418] dark:text-white mb-1">学号</label>
@@ -306,6 +327,16 @@
           </div>
           
           <div>
+            <label class="block text-sm font-medium text-[#111418] dark:text-white mb-1">专业</label>
+            <input 
+              v-model="editForm.major" 
+              type="text" 
+              class="w-full px-3 py-2 border border-[#d1d5db] dark:border-[#4b5563] rounded-lg bg-white dark:bg-[#2c3b49] text-[#111418] dark:text-white"
+              placeholder="请输入专业"
+            >
+          </div>
+          
+          <div>
             <label class="block text-sm font-medium text-[#111418] dark:text-white mb-1">年级</label>
             <input 
               v-model="editForm.grade" 
@@ -324,9 +355,55 @@
               placeholder="请输入头像链接"
             >
           </div>
+          
+          <!-- 地址信息分隔线 -->
+          <div class="col-span-2 pt-4 border-t border-[#e5e7eb] dark:border-[#22303e]">
+            <h4 class="text-sm font-semibold text-[#111418] dark:text-white mb-3">默认收货地址</h4>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-[#111418] dark:text-white mb-1">默认宿舍楼</label>
+            <select 
+              v-model="editForm.defaultDormitory" 
+              class="w-full px-3 py-2 border border-[#d1d5db] dark:border-[#4b5563] rounded-lg bg-white dark:bg-[#2c3b49] text-[#111418] dark:text-white"
+            >
+              <option value="">未设置</option>
+              <option value="mei14">梅一四围合</option>
+              <option value="mei58">梅五八围合</option>
+              <option value="mei9">梅九围合</option>
+              <option value="tao12">桃一二围合</option>
+              <option value="tao34">桃三四围合</option>
+              <option value="tao56">桃五六围合</option>
+              <option value="tao78">桃七八围合</option>
+              <option value="tao910">桃九十围合</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-[#111418] dark:text-white mb-1">默认房间号</label>
+            <input 
+              v-model="editForm.defaultRoomNumber" 
+              type="text" 
+              class="w-full px-3 py-2 border border-[#d1d5db] dark:border-[#4b5563] rounded-lg bg-white dark:bg-[#2c3b49] text-[#111418] dark:text-white"
+              placeholder="例如：304B"
+            >
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-[#111418] dark:text-white mb-1">校园一卡通号</label>
+            <input 
+              v-model="editForm.campusCardNumber" 
+              type="text" 
+              class="w-full px-3 py-2 border border-[#d1d5db] dark:border-[#4b5563] rounded-lg bg-white dark:bg-[#2c3b49] text-[#111418] dark:text-white"
+              placeholder="2023 0000 1234"
+            >
+          </div>
         </div>
-        
-        <div class="flex gap-3 pt-4">
+      </div>
+      
+      <!-- Modal Footer - 固定在底部 -->
+      <div class="flex-shrink-0 bg-white dark:bg-[#1a2632] border-t border-[#e5e7eb] dark:border-[#22303e] px-6 py-4 rounded-b-xl">
+        <div class="flex gap-3">
           <button 
             @click="handleUpdateProfile" 
             :disabled="isUpdating"
@@ -457,8 +534,12 @@ const editForm = ref({
   email: '',
   phone: '',
   department: '',
+  major: '',
   grade: '',
-  avatar: ''
+  avatar: '',
+  defaultDormitory: '',
+  defaultRoomNumber: '',
+  campusCardNumber: ''
 })
 
 const isUpdating = ref(false)
@@ -469,12 +550,16 @@ const handleUpdateProfile = async () => {
   try {
     const updateData = {}
     // Only include fields that have values (not empty strings)
-    if (editForm.value.studentId.trim()) updateData.student_id = editForm.value.studentId.trim()
+    if (editForm.value.studentId.trim()) updateData.studentId = editForm.value.studentId.trim()
     if (editForm.value.email.trim()) updateData.email = editForm.value.email.trim()
     if (editForm.value.phone.trim()) updateData.phone = editForm.value.phone.trim()
     if (editForm.value.department.trim()) updateData.department = editForm.value.department.trim()
+    if (editForm.value.major.trim()) updateData.major = editForm.value.major.trim()
     if (editForm.value.grade.trim()) updateData.grade = editForm.value.grade.trim()
     if (editForm.value.avatar.trim()) updateData.avatar = editForm.value.avatar.trim()
+    if (editForm.value.defaultDormitory.trim()) updateData.defaultDormitory = editForm.value.defaultDormitory.trim()
+    if (editForm.value.defaultRoomNumber.trim()) updateData.defaultRoomNumber = editForm.value.defaultRoomNumber.trim()
+    if (editForm.value.campusCardNumber.trim()) updateData.campusCardNumber = editForm.value.campusCardNumber.trim()
     
     const { updateUserInfo } = await import('@/api/users')
     await updateUserInfo(updateData)
@@ -500,10 +585,43 @@ const openEditProfile = () => {
     email: userInfo.value.email || '',
     phone: userInfo.value.phone || '',
     department: userInfo.value.department || '',
+    major: userInfo.value.major || '',
     grade: userInfo.value.grade || '',
-    avatar: userInfo.value.avatar || ''
+    avatar: userInfo.value.avatar || '',
+    defaultDormitory: userInfo.value.default_dormitory || '',
+    defaultRoomNumber: userInfo.value.default_room_number || '',
+    campusCardNumber: userInfo.value.campus_card_number || ''
   }
   showEditProfile.value = true
+}
+
+// 格式化地址显示
+const formatAddress = (user) => {
+  if (!user.default_dormitory && !user.default_room_number) {
+    return '未填写'
+  }
+  
+  const dormitoryMap = {
+    'mei14': '梅一四围合',
+    'mei58': '梅五八围合',
+    'mei9': '梅九围合',
+    'tao12': '桃一二围合',
+    'tao34': '桃三四围合',
+    'tao56': '桃五六围合',
+    'tao78': '桃七八围合',
+    'tao910': '桃九十围合'
+  }
+  
+  const dormitory = dormitoryMap[user.default_dormitory] || ''
+  const room = user.default_room_number || ''
+  
+  if (dormitory && room) {
+    return `${dormitory} ${room}`
+  } else if (dormitory) {
+    return dormitory
+  } else {
+    return room
+  }
 }
 
 // Account Settings Actions
@@ -554,17 +672,21 @@ const loadOrders = async () => {
     })
     
     // 转换后端数据格式为前端需要的格式
-    orders.value = res.data.records.map(order => ({
-      id: order.id,
-      orderNo: order.orderNo,
-      createTime: order.createTime,
-      status: order.status,
-      bookTitle: order.items?.[0]?.bookTitle || '未知书籍',
-      bookDesc: order.items?.[0]?.bookAuthor ? `作者: ${order.items[0].bookAuthor}` : '',
-      bookCover: order.items?.[0]?.bookCover || '',
-      quantity: order.items?.[0]?.quantity || 1,
-      totalAmount: order.totalAmount
-    }))
+    // 注意：后端返回的是下划线命名（order_no, create_time等）
+    orders.value = res.data.records.map(order => {
+      const bookCovers = order.book_covers ? order.book_covers.split(',') : []
+      return {
+        id: order.id,
+        orderNo: order.order_no,
+        createTime: order.create_time,
+        status: order.status,
+        bookTitle: order.book_titles ? order.book_titles.split(',')[0] : '未知书籍',
+        bookDesc: '',
+        bookCover: bookCovers[0] || 'https://via.placeholder.com/100x140?text=No+Cover',
+        quantity: 1,
+        totalAmount: order.total_amount
+      }
+    })
     
     // 统计订单数量
     userStats.value.purchasedBooks = res.data.total || orders.value.length
@@ -716,8 +838,14 @@ const handleOrderAction = async (type, order) => {
 }
 
 const handleViewAllOrders = () => {
-  alert('跳转到订单列表页...')
-  // 实际应跳转到专门的订单管理页面
+  // 平滑滚动到订单区域
+  const ordersSection = document.querySelector('.orders-section')
+  if (ordersSection) {
+    ordersSection.scrollIntoView({ 
+      behavior: 'smooth', 
+      block: 'start' 
+    })
+  }
 }
 
 // Lifecycle
