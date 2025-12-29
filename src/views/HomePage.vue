@@ -228,84 +228,33 @@
       
       <section class="w-full bg-white dark:bg-[#111a22] px-4 md:px-10 lg:px-40 flex justify-center pb-12">
         <div class="layout-content-container flex flex-col max-w-[1280px] flex-1">
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-6 py-6">
-            <!-- Book Card 1 -->
-            <div @click="goToBook(1)" class="flex flex-col gap-3 group cursor-pointer">
+          <div v-if="loading" class="flex justify-center items-center py-20">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+          
+          <div v-else class="grid grid-cols-2 md:grid-cols-4 gap-6 py-6">
+            <!-- 动态渲染书籍卡片 -->
+            <div 
+              v-for="book in latestBooks" 
+              :key="book.id"
+              @click="goToBook(book.id)" 
+              class="flex flex-col gap-3 group cursor-pointer"
+            >
               <div class="relative w-full aspect-[3/4] rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm transition-transform duration-300 group-hover:-translate-y-1">
-                <div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBqciNAB5C-fOkKsuRYhnMfnMSEBjaUo43HZwlgCy5NHyfYhVvY7jcmLZfcYYhuZo08z4hasDHDR3GD2ywDJyp82SU6SZeKoBCRkD4Q4szE1uRmGU5oxpEXTz7O8W1X0iEh22G22AZscVzVJQ2ZRbwaPej2eBeWSzfCD49JCXoA5o1crKPtBE78iog4UPcCdPY9eUp211QbFICPV_fV2Bx9sRoZgp34Szmx57s0SIwXc6LeDRpOIpdlUO5Tq1CV1Xibv4b6HnZkNa1n");'>
+                <div 
+                  class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105" 
+                  :style="{ backgroundImage: `url(${book.cover_image || 'https://placehold.co/200x280/e5e7eb/999999?text=No+Cover'})` }"
+                >
                 </div>
-                <div class="absolute top-2 right-2 bg-white dark:bg-slate-800 px-2 py-1 rounded text-xs font-bold text-text-main dark:text-white shadow-sm">
-                  二手
+                <div class="absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold shadow-sm" :class="getConditionBadgeClass(book.condition)">
+                  {{ getConditionLabel(book.condition) }}
                 </div>
               </div>
               <div class="flex flex-col gap-1">
-                <h3 class="text-text-main dark:text-white text-base font-bold leading-tight line-clamp-2 group-hover:text-primary transition-colors">微积分：早期超越函数 (Calculus)</h3>
-                <p class="text-text-muted dark:text-slate-400 text-sm font-normal">James Stewart</p>
+                <h3 class="text-text-main dark:text-white text-base font-bold leading-tight line-clamp-2 group-hover:text-primary transition-colors">{{ book.title }}</h3>
+                <p class="text-text-muted dark:text-slate-400 text-sm font-normal">{{ book.author }}</p>
                 <div class="flex items-center justify-between mt-1">
-                  <p class="text-primary text-lg font-bold">¥45.00</p>
-                  <button class="text-slate-400 hover:text-primary transition-colors">
-                    <span class="material-symbols-outlined">favorite</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Book Card 2 -->
-            <div @click="goToBook(2)" class="flex flex-col gap-3 group cursor-pointer">
-              <div class="relative w-full aspect-[3/4] rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm transition-transform duration-300 group-hover:-translate-y-1">
-                <div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAxlKwFU0b2VwIHqzD3mdEgxfxYhDNLcaB-dq4DYMH86FpGA1-O03gZzoB85DPQALwCS8nEDbafPQAwOqqT11jiZU96uLIYsMuvySDN5EoPrCLQOPqVL8iqIIjVdG5O1ZKkOz-SFHAFroX7bboiu1ccvY35fJLENUQZ1wRNe5Yex7g4HpP1U3QLcS7qLTv-RpP_95gfe8ZnMUI6SkxVMo6antsVxFmlkZO_Pd994O7TTP8k1UlOvwjzhcYiLPeqGOgG83wNYtxBRN37");'>
-                </div>
-                <div class="absolute top-2 right-2 bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold shadow-sm">
-                  九成新
-                </div>
-              </div>
-              <div class="flex flex-col gap-1">
-                <h3 class="text-text-main dark:text-white text-base font-bold leading-tight line-clamp-2 group-hover:text-primary transition-colors">坎贝尔生物学 (Campbell Biology)</h3>
-                <p class="text-text-muted dark:text-slate-400 text-sm font-normal">Lisa A. Urry</p>
-                <div class="flex items-center justify-between mt-1">
-                  <p class="text-primary text-lg font-bold">¥60.00</p>
-                  <button class="text-slate-400 hover:text-primary transition-colors">
-                    <span class="material-symbols-outlined">favorite</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Book Card 3 -->
-            <div @click="goToBook(3)" class="flex flex-col gap-3 group cursor-pointer">
-              <div class="relative w-full aspect-[3/4] rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm transition-transform duration-300 group-hover:-translate-y-1">
-                <div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCBxG8Oe_5vjqxUaMFnva3kVwXqLUPCL9BHE7qQAIVvfcxc_nITOh3RaMEGj4Z6dF0ri7EmX8i2AQsvXRiArEyy6w6otQ0jrT7wqGRmDuEdCDXoeaFDVJ69lLLHMlDzCF-84hgwLnsb4L3bFE7zYko8AkvMey46nudnZvOWCr8_Uj_pWjHOtL6HN2Dxh6ZHhHPdFVGj3o9DRbds91WtMxJ8KMaW2IDy3KF1VoiN0xHBhNx0JQfzptuoLIz96YrylRbHI7Iynw0FdkDP");'>
-                </div>
-                <div class="absolute top-2 right-2 bg-white dark:bg-slate-800 px-2 py-1 rounded text-xs font-bold text-text-main dark:text-white shadow-sm">
-                  良好
-                </div>
-              </div>
-              <div class="flex flex-col gap-1">
-                <h3 class="text-text-main dark:text-white text-base font-bold leading-tight line-clamp-2 group-hover:text-primary transition-colors">经济学原理 (Principles of Economics)</h3>
-                <p class="text-text-muted dark:text-slate-400 text-sm font-normal">N. Gregory Mankiw</p>
-                <div class="flex items-center justify-between mt-1">
-                  <p class="text-primary text-lg font-bold">¥30.00</p>
-                  <button class="text-slate-400 hover:text-primary transition-colors">
-                    <span class="material-symbols-outlined">favorite</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Book Card 4 -->
-            <div @click="goToBook(4)" class="flex flex-col gap-3 group cursor-pointer">
-              <div class="relative w-full aspect-[3/4] rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm transition-transform duration-300 group-hover:-translate-y-1">
-                <div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-500 group-hover:scale-105" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAfHUrKiEvwNOHSoLvt6lMYh9FbDq_08PStcBqt5KTpgQJt4YtlEuAODaHs9UI4QqHT8MYVok1szX_1v7fYCqMHOXhiiOHQYKxGzHAAkvI42U77kxb-PWbBVKBN6IBZYu-2CkzVsDqVxlfwuMON68vzvHm-vMGgsT6RbNGZNKOhR9zTypRDp4JOC54lbQnZW9JMwfReJlbpbguuIykkcmr3WLfABwhIsOkBbY_tdDalNJGQNZsWnWXalLLM7jWIRjX_HkaFK42ASApX");'>
-                </div>
-                <div class="absolute top-2 right-2 bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-bold shadow-sm">
-                  一般
-                </div>
-              </div>
-              <div class="flex flex-col gap-1">
-                <h3 class="text-text-main dark:text-white text-base font-bold leading-tight line-clamp-2 group-hover:text-primary transition-colors">美国人民的历史 (People's History)</h3>
-                <p class="text-text-muted dark:text-slate-400 text-sm font-normal">Howard Zinn</p>
-                <div class="flex items-center justify-between mt-1">
-                  <p class="text-primary text-lg font-bold">¥20.00</p>
+                  <p class="text-primary text-lg font-bold">¥{{ book.price.toFixed(2) }}</p>
                   <button class="text-slate-400 hover:text-primary transition-colors">
                     <span class="material-symbols-outlined">favorite</span>
                   </button>
@@ -363,11 +312,15 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { searchBooks } from '@/api/books'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const searchKeyword = ref('')
 const showDropdown = ref(false)
+const latestBooks = ref([])
+const loading = ref(false)
+
 // 检查登录状态
 const isLoggedIn = computed(() => {
   return authStore.isLoggedIn
@@ -417,10 +370,52 @@ const initializeAuth = async () => {
   }
 }
 
+// 获取最新发布的书籍
+const fetchLatestBooks = async () => {
+  loading.value = true
+  try {
+    const res = await searchBooks({
+      keyword: '',
+      pageNum: 1,
+      pageSize: 4,
+      sortBy: 'latest'
+    })
+    if (res.code === 200) {
+      latestBooks.value = res.data.records || []
+    }
+  } catch (error) {
+    console.error('获取最新书籍失败:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// 成色标签样式
+const getConditionBadgeClass = (condition) => {
+  const classMap = {
+    'LIKE_NEW': 'bg-green-100 text-green-700',
+    'GOOD': 'bg-blue-100 text-blue-700',
+    'FAIR': 'bg-orange-100 text-orange-700'
+  }
+  return classMap[condition] || 'bg-white dark:bg-slate-800 text-text-main dark:text-white'
+}
+
+// 成色标签文本
+const getConditionLabel = (condition) => {
+  const labelMap = {
+    'LIKE_NEW': '九五新',
+    'GOOD': '八成新',
+    'FAIR': '七成新'
+  }
+  return labelMap[condition] || '二手'
+}
+
 onMounted(async () => {
   document.addEventListener('click', handleClickOutside)
   // 初始化认证状态
   await initializeAuth()
+  // 获取最新书籍
+  await fetchLatestBooks()
 })
 
 onUnmounted(() => {

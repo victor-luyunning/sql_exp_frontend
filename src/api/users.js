@@ -25,3 +25,12 @@ export const checkUsername = (username) => {
     params: { username }
   })
 }
+
+// 充值
+export const recharge = (amount) => {
+  return request({
+    url: '/user/recharge',
+    method: 'post',
+    data: { amount }
+  })
+}

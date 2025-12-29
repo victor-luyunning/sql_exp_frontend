@@ -272,6 +272,13 @@ const submitOrder = async () => {
     return
   }
   
+  // 验证手机号必须是11位数字
+  const phoneRegex = /^\d{11}$/
+  if (!phoneRegex.test(formData.value.phone)) {
+    alert('手机号必须是11位数字')
+    return
+  }
+  
   if (!formData.value.cardNumber) {
     alert('请输入卡号')
     return

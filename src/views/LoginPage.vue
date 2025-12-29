@@ -44,9 +44,9 @@
       <div class="w-full lg:w-1/2 flex flex-col justify-center p-8 md:p-16 lg:p-20 relative">
         <!-- Mobile Logo -->
         <div class="lg:hidden absolute top-8 left-8 flex items-center gap-2 mb-8">
-          <div class="w-8 h-8 rounded bg-primary flex items-center justify-center">
-            <span class="material-symbols-outlined text-[24px]">menu_book</span>
-            <span class="text-xl font-bold text-gray-900 dark:text-white">CampusBooks</span>
+          <div class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary shadow-lg shadow-primary/40">
+            <span class="material-icons text-white">menu_book</span>
+            <span class="text-white text-2xl font-bold tracking-tight">CampusBooks</span>
           </div>
         </div>
 

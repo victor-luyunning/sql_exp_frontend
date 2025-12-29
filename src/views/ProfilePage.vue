@@ -439,7 +439,7 @@
       <div class="p-6 space-y-5">
         <div class="space-y-4">
           <button 
-            @click="handleRecharge"
+            @click="openRechargeModal"
             class="w-full flex items-center justify-center gap-3 px-4 py-3 bg-green-600 text-white rounded-lg text-base font-medium hover:bg-green-700 transition-colors"
           >
             <span class="material-symbols-outlined">payments</span>
@@ -452,6 +452,79 @@
           >
             <span class="material-symbols-outlined">logout</span>
             注销
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recharge Modal -->
+  <div v-if="showRechargeModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" @click.self="showRechargeModal = false">
+    <div class="bg-white dark:bg-[#1a2632] rounded-xl shadow-2xl w-full max-w-md">
+      <!-- Modal Header -->
+      <div class="bg-white dark:bg-[#1a2632] border-b border-[#e5e7eb] dark:border-[#22303e] px-6 py-4 flex items-center justify-between rounded-t-xl">
+        <h3 class="text-xl font-bold text-[#111418] dark:text-white">账户充值</h3>
+        <button @click="showRechargeModal = false" class="text-[#617589] hover:text-[#111418] dark:hover:text-white transition-colors">
+          <span class="material-symbols-outlined text-[24px]">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-4">
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg p-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm text-[#617589] dark:text-[#9aaebf]">当前余额</span>
+            <span class="text-2xl font-bold text-primary">¥{{ (userInfo.balance || 0).toFixed(2) }}</span>
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-[#111418] dark:text-white mb-2">充值金额</label>
+          <div class="relative">
+            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[#617589] text-lg font-medium">¥</span>
+            <input 
+              v-model="rechargeAmount" 
+              type="number"
+              step="0.01"
+              min="0.01"
+              class="w-full pl-10 pr-4 py-3 border border-[#d1d5db] dark:border-[#4b5563] rounded-lg bg-white dark:bg-[#2c3b49] text-[#111418] dark:text-white text-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+              placeholder="请输入充值金额"
+            >
+          </div>
+          <p class="text-xs text-[#617589] dark:text-[#9aaebf] mt-2">最低充值金额：¥0.01</p>
+        </div>
+
+        <!-- 快捷充值金额 -->
+        <div class="grid grid-cols-3 gap-2">
+          <button 
+            v-for="quickAmount in [10, 50, 100, 200, 500, 1000]" 
+            :key="quickAmount"
+            @click="rechargeAmount = quickAmount"
+            class="px-4 py-2 border border-[#d1d5db] dark:border-[#4b5563] rounded-lg text-sm font-medium text-[#111418] dark:text-white hover:bg-primary/5 hover:border-primary transition-colors"
+          >
+            ¥{{ quickAmount }}
+          </button>
+        </div>
+      </div>
+      
+      <!-- Modal Footer -->
+      <div class="bg-white dark:bg-[#1a2632] border-t border-[#e5e7eb] dark:border-[#22303e] px-6 py-4 rounded-b-xl">
+        <div class="flex gap-3">
+          <button 
+            @click="handleRecharge" 
+            :disabled="isRecharging || !rechargeAmount || rechargeAmount <= 0"
+            class="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-base font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span v-if="isRecharging" class="material-symbols-outlined animate-spin">sync</span>
+            <span v-else class="material-symbols-outlined">check</span>
+            <span>{{ isRecharging ? '充值中...' : '确定' }}</span>
+          </button>
+          <button 
+            @click="showRechargeModal = false" 
+            :disabled="isRecharging"
+            class="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-[#2c3b49] border border-[#d1d5db] dark:border-[#4b5563] text-[#111418] dark:text-white rounded-lg text-base font-medium hover:bg-gray-50 dark:hover:bg-[#37495b] transition-colors disabled:opacity-50"
+          >
+            取消
           </button>
         </div>
       </div>
@@ -527,6 +600,9 @@ const showSettings = ref(false)
 
 // Settings Modal
 const showAccountSettings = ref(false)
+const showRechargeModal = ref(false)
+const rechargeAmount = ref('')
+const isRecharging = ref(false)
 
 // Edit Profile Form
 const editForm = ref({
@@ -548,6 +624,16 @@ const isUpdating = ref(false)
 const handleUpdateProfile = async () => {
   isUpdating.value = true
   try {
+    // 验证手机号
+    if (editForm.value.phone.trim()) {
+      const phoneRegex = /^\d{11}$/
+      if (!phoneRegex.test(editForm.value.phone.trim())) {
+        alert('手机号必须是11位数字')
+        isUpdating.value = false
+        return
+      }
+    }
+    
     const updateData = {}
     // Only include fields that have values (not empty strings)
     if (editForm.value.studentId.trim()) updateData.studentId = editForm.value.studentId.trim()
@@ -625,9 +711,38 @@ const formatAddress = (user) => {
 }
 
 // Account Settings Actions
-const handleRecharge = () => {
-  alert('充值功能暂未实现')
-  // 这里可以实现充值逻辑，例如跳转到充值页面
+const openRechargeModal = () => {
+  showAccountSettings.value = false
+  showRechargeModal.value = true
+  rechargeAmount.value = ''
+}
+
+const handleRecharge = async () => {
+  if (!rechargeAmount.value || parseFloat(rechargeAmount.value) <= 0) {
+    alert('请输入有效的充值金额')
+    return
+  }
+  
+  isRecharging.value = true
+  try {
+    const { recharge } = await import('@/api/users')
+    const res = await recharge(parseFloat(rechargeAmount.value))
+    
+    if (res.code === 200) {
+      // 更新本地用户余额
+      userInfo.value.balance = res.data.balance
+      alert(`充值成功！\n充值金额：¥${parseFloat(rechargeAmount.value).toFixed(2)}\n当前余额：¥${res.data.balance.toFixed(2)}`)
+      showRechargeModal.value = false
+      rechargeAmount.value = ''
+    } else {
+      alert('充值失败：' + (res.message || '请稍后再试'))
+    }
+  } catch (error) {
+    console.error('充值失败:', error)
+    alert('充值失败：' + (error.message || '请稍后再试'))
+  } finally {
+    isRecharging.value = false
+  }
 }
 
 const handleLogout = async () => {
